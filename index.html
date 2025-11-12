@@ -10,18 +10,18 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
             font-family: Arial, sans-serif;
             overflow: hidden;
         }
         
-        /* Pantalla de Login */
+        /* Fondo del login */
         #login-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100%;
             width: 100%;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             position: fixed;
             top: 0;
             left: 0;
@@ -34,24 +34,37 @@
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
             width: 90%;
-            max-width: 380px;
+            max-width: 400px;
             text-align: center;
         }
         
         h2 {
-            margin: 0 0 20px;
+            margin: 0 0 10px;
             color: #1e3c72;
             font-size: 26px;
         }
         
         .subtitle {
-            color: #333;
+            color: #666;
             margin-bottom: 30px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .step-indicator {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 20px;
+            display: inline-block;
             font-weight: bold;
         }
         
         input[type="text"], 
-        input[type="password"] {
+        input[type="password"],
+        input[type="email"] {
             width: 100%;
             padding: 14px;
             margin: 12px 0;
@@ -64,6 +77,7 @@
         input:focus {
             outline: none;
             border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
         }
         
         button {
@@ -75,12 +89,33 @@
             font-size: 18px;
             cursor: pointer;
             margin-top: 20px;
-            transition: background 0.3s;
             width: 100%;
+            transition: all 0.3s;
         }
         
         button:hover {
             background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .secondary-btn {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+        
+        .secondary-btn:hover {
+            background: #5a6268;
         }
         
         .error {
@@ -91,8 +126,35 @@
             background: #f8d7da;
             padding: 10px;
             border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 13px;
         }
 
+        .code-input {
+            font-size: 24px !important;
+            letter-spacing: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
         /* Contenedor del iframe */
         #app-container {
             display: none;
@@ -102,7 +164,6 @@
             width: 100%;
             height: 100%;
             background: white;
-            z-index: 999;
         }
         
         #appsheet-frame {
@@ -111,31 +172,26 @@
             border: none;
         }
 
-        /* Advertencia importante */
-        .warning-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            color: #856404;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-size: 13px;
-            text-align: left;
+        /* Spinner de carga */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1e3c72;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .warning-box strong {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .warning-box ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-
-        .warning-box li {
-            margin: 5px 0;
+        /* Paso de verificación oculto inicialmente */
+        #step-verify {
+            display: none;
         }
     </style>
 </head>
@@ -143,31 +199,47 @@
     <!-- Pantalla de Login -->
     <div id="login-wrapper">
         <div class="login-box">
-            <h2>Control Datos Boy</h2>
-            <p class="subtitle">Ingreso a Bodega Rentísticos</p>
-           
-            <input type="text" id="usuario" placeholder="Usuario" autocomplete="off" autofocus>
-            <input type="password" id="password" placeholder="Contraseña">
-            <button onclick="verificar()">INGRESAR</button>
-           
-            <p class="error" id="error-msg">❌ Usuario o contraseña incorrectos</p>
+            <!-- PASO 1: Login con usuario y contraseña -->
+            <div id="step-login">
+                <div class="step-indicator">🔐 Paso 1 de 2</div>
+                <h2>Control Datos Boy</h2>
+                <p class="subtitle">Ingreso a Bodega Rentísticos</p>
+               
+                <input type="text" id="usuario" placeholder="Usuario" autocomplete="off" autofocus>
+                <input type="password" id="password" placeholder="Contraseña">
+                <input type="email" id="email" placeholder="Correo electrónico">
+                
+                <button onclick="verificarCredenciales()">CONTINUAR</button>
+                
+                <p class="error" id="error-msg"></p>
+                <div class="spinner" id="spinner-login"></div>
+            </div>
 
-            <div class="warning-box">
-                <strong>⚠️ LIMITACIÓN TÉCNICA IMPORTANTE:</strong>
-                <p>AppSheet tiene verificación de email activa que bloquea el iframe. Por esto:</p>
-                <ul>
-                    <li>❌ NO se puede ocultar la URL de AppSheet</li>
-                    <li>❌ NO se puede cargar en iframe</li>
-                    <li>✅ SOLUCIÓN: Desactivar verificación en AppSheet</li>
-                </ul>
-                <p style="margin-top: 10px;"><strong>Para ocultar la URL necesitas:</strong></p>
-                <p style="font-size: 12px; margin: 5px 0;">1. Desactivar verificación de email en AppSheet, O</p>
-                <p style="font-size: 12px; margin: 5px 0;">2. Contratar un servidor proxy (backend)</p>
+            <!-- PASO 2: Verificación por código -->
+            <div id="step-verify">
+                <div class="step-indicator">✉️ Paso 2 de 2</div>
+                <h2>Verificación de Seguridad</h2>
+                <p class="subtitle">Ingresa el código de 6 dígitos</p>
+                
+                <div class="info">
+                    📧 Hemos enviado un código de verificación a:<br>
+                    <strong id="email-display"></strong>
+                </div>
+                
+                <input type="text" id="codigo" placeholder="000000" maxlength="6" class="code-input" autocomplete="off">
+                
+                <button onclick="verificarCodigo()">VERIFICAR CÓDIGO</button>
+                <button class="secondary-btn" onclick="volverLogin()">← Volver</button>
+                <button class="secondary-btn" onclick="reenviarCodigo()" id="btn-reenviar">🔄 Reenviar código</button>
+                
+                <p class="error" id="error-codigo"></p>
+                <p class="success" id="success-codigo"></p>
+                <div class="spinner" id="spinner-verify"></div>
             </div>
         </div>
     </div>
 
-    <!-- Contenedor de la App (NO FUNCIONARÁ con verificación activa) -->
+    <!-- Contenedor de la App -->
     <div id="app-container">
         <iframe id="appsheet-frame"
                 src=""
@@ -177,51 +249,195 @@
     </div>
 
     <script>
-        // ==== CONFIGURACIÓN ====
-        const usuarios = [
-            "admin:1234",
-            "jefe:rentistico",
-            "bodega:2025",
-            "user1:bodega2025"
-        ];
+        // ==== CONFIGURACIÓN DE USUARIOS ====
+        const usuarios = {
+            "admin": {
+                password: "1234",
+                email: "admin@example.com"
+            },
+            "jefe": {
+                password: "rentistico",
+                email: "jefe@example.com"
+            },
+            "bodega": {
+                password: "2025",
+                email: "bodega@example.com"
+            },
+            "user1": {
+                password: "bodega2025",
+                email: "user1@example.com"
+            }
+        };
 
-        // URL de AppSheet
         const APPSHEET_URL = "https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
+        
+        let codigoGenerado = "";
+        let usuarioActual = "";
+        let emailActual = "";
+        let intentosRestantes = 3;
 
-        // ==== VERIFICAR LOGIN ====
-        function verificar() {
+        // ==== PASO 1: VERIFICAR CREDENCIALES ====
+        function verificarCredenciales() {
             const user = document.getElementById("usuario").value.trim();
             const pass = document.getElementById("password").value;
-            const intento = user + ":" + pass;
+            const email = document.getElementById("email").value.trim();
             const errorMsg = document.getElementById("error-msg");
+            const spinner = document.getElementById("spinner-login");
 
             errorMsg.style.display = "none";
 
-            if (!user || !pass) {
+            // Validaciones
+            if (!user || !pass || !email) {
                 errorMsg.textContent = "⚠️ Por favor completa todos los campos";
                 errorMsg.style.display = "block";
                 return;
             }
 
-            if (usuarios.includes(intento)) {
-                // Guardar sesión
-                try {
-                    sessionStorage.setItem("authenticated", "true");
-                    sessionStorage.setItem("username", user);
-                } catch (e) {
-                    console.log('sessionStorage no disponible');
-                }
+            if (!validarEmail(email)) {
+                errorMsg.textContent = "⚠️ Ingresa un correo electrónico válido";
+                errorMsg.style.display = "block";
+                return;
+            }
 
-                // Intentar cargar en iframe (solo funciona sin verificación de email)
-                intentarCargarApp();
+            // Verificar usuario y contraseña
+            if (usuarios[user] && usuarios[user].password === pass) {
+                // Validar email (opcional: puedes hacer que coincida exactamente)
+                usuarioActual = user;
+                emailActual = email;
+                
+                // Mostrar spinner
+                spinner.style.display = "block";
+                
+                // Generar y "enviar" código
+                setTimeout(() => {
+                    generarYEnviarCodigo();
+                    spinner.style.display = "none";
+                }, 1500);
             } else {
                 errorMsg.textContent = "❌ Usuario o contraseña incorrectos";
                 errorMsg.style.display = "block";
             }
         }
 
-        // ==== INTENTAR CARGAR APP ====
-        function intentarCargarApp() {
+        // ==== GENERAR Y ENVIAR CÓDIGO ====
+        function generarYEnviarCodigo() {
+            // Generar código de 6 dígitos
+            codigoGenerado = Math.floor(100000 + Math.random() * 900000).toString();
+            intentosRestantes = 3;
+            
+            // Simular envío de email
+            console.log("=================================");
+            console.log("📧 CÓDIGO DE VERIFICACIÓN");
+            console.log("=================================");
+            console.log("Usuario:", usuarioActual);
+            console.log("Email:", emailActual);
+            console.log("Código:", codigoGenerado);
+            console.log("=================================");
+            
+            // AQUÍ INTEGRARÍAS UN SERVICIO DE EMAIL REAL
+            // Ejemplos: EmailJS, SendGrid, Mailgun, etc.
+            enviarEmailReal(emailActual, codigoGenerado);
+            
+            // Mostrar paso 2
+            document.getElementById("step-login").style.display = "none";
+            document.getElementById("step-verify").style.display = "block";
+            document.getElementById("email-display").textContent = emailActual;
+            document.getElementById("codigo").focus();
+        }
+
+        // ==== ENVIAR EMAIL REAL (USANDO EMAILJS - GRATIS) ====
+        function enviarEmailReal(email, codigo) {
+            // Para usar EmailJS (servicio gratuito de envío de emails):
+            // 1. Regístrate en https://www.emailjs.com/
+            // 2. Crea un servicio de email
+            // 3. Crea una plantilla
+            // 4. Reemplaza estos IDs con los tuyos
+            
+            // IMPORTANTE: Por seguridad, esto es solo una simulación
+            // En la consola del navegador verás el código
+            
+            alert("✅ Código enviado a " + email + "\n\n🔍 PARA PRUEBAS: Revisa la consola del navegador (F12) para ver el código");
+            
+            /* EJEMPLO DE INTEGRACIÓN CON EMAILJS:
+            
+            emailjs.send("service_id", "template_id", {
+                to_email: email,
+                codigo: codigo,
+                usuario: usuarioActual
+            }).then(
+                function(response) {
+                    console.log("Email enviado", response);
+                },
+                function(error) {
+                    console.log("Error al enviar email", error);
+                }
+            );
+            */
+        }
+
+        // ==== PASO 2: VERIFICAR CÓDIGO ====
+        function verificarCodigo() {
+            const codigoIngresado = document.getElementById("codigo").value.trim();
+            const errorCodigo = document.getElementById("error-codigo");
+            const successCodigo = document.getElementById("success-codigo");
+            const spinner = document.getElementById("spinner-verify");
+
+            errorCodigo.style.display = "none";
+            successCodigo.style.display = "none";
+
+            if (!codigoIngresado || codigoIngresado.length !== 6) {
+                errorCodigo.textContent = "⚠️ Ingresa un código de 6 dígitos";
+                errorCodigo.style.display = "block";
+                return;
+            }
+
+            // Mostrar spinner
+            spinner.style.display = "block";
+
+            // Simular verificación
+            setTimeout(() => {
+                spinner.style.display = "none";
+
+                if (codigoIngresado === codigoGenerado) {
+                    // Código correcto
+                    successCodigo.textContent = "✅ Código verificado correctamente";
+                    successCodigo.style.display = "block";
+                    
+                    // Guardar sesión
+                    try {
+                        sessionStorage.setItem("authenticated", "true");
+                        sessionStorage.setItem("username", usuarioActual);
+                        sessionStorage.setItem("loginTime", Date.now().toString());
+                    } catch (e) {
+                        console.log('sessionStorage no disponible');
+                    }
+                    
+                    // Mostrar app después de 1 segundo
+                    setTimeout(() => {
+                        mostrarApp();
+                    }, 1000);
+                } else {
+                    // Código incorrecto
+                    intentosRestantes--;
+                    
+                    if (intentosRestantes > 0) {
+                        errorCodigo.textContent = "❌ Código incorrecto. Te quedan " + intentosRestantes + " intentos";
+                        errorCodigo.style.display = "block";
+                        document.getElementById("codigo").value = "";
+                        document.getElementById("codigo").focus();
+                    } else {
+                        errorCodigo.textContent = "🚫 Demasiados intentos fallidos. Vuelve a iniciar sesión";
+                        errorCodigo.style.display = "block";
+                        setTimeout(() => {
+                            volverLogin();
+                        }, 2000);
+                    }
+                }
+            }, 800);
+        }
+
+        // ==== MOSTRAR APLICACIÓN ====
+        function mostrarApp() {
             const loginWrapper = document.getElementById("login-wrapper");
             const appContainer = document.getElementById("app-container");
             const iframe = document.getElementById("appsheet-frame");
@@ -229,86 +445,72 @@
             // Ocultar login
             loginWrapper.style.display = "none";
             
-            // Mostrar iframe
+            // Mostrar app
             appContainer.style.display = "block";
             iframe.src = APPSHEET_URL;
-
-            // Detectar si el iframe fue bloqueado
-            let timeoutId = setTimeout(function() {
-                // Si después de 5 segundos no carga, probablemente está bloqueado
-                verificarSiCargo(iframe);
-            }, 5000);
-
-            iframe.onload = function() {
-                clearTimeout(timeoutId);
-                try {
-                    // Intentar acceder al contenido del iframe
-                    var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    console.log('Iframe cargado correctamente');
-                } catch (e) {
-                    // Si no puede acceder, está bloqueado por CORS
-                    console.log('Iframe bloqueado por AppSheet');
-                    mostrarErrorBloqueo();
-                }
-            };
-
-            iframe.onerror = function() {
-                clearTimeout(timeoutId);
-                mostrarErrorBloqueo();
-            };
         }
 
-        // ==== VERIFICAR SI EL IFRAME CARGÓ ====
-        function verificarSiCargo(iframe) {
-            try {
-                var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                if (!iframeDoc || iframeDoc.body.innerHTML === "") {
-                    mostrarErrorBloqueo();
-                }
-            } catch (e) {
-                // Probablemente bloqueado, pero podría haber cargado igual
-                console.log('No se puede verificar el contenido del iframe');
-            }
+        // ==== VOLVER AL LOGIN ====
+        function volverLogin() {
+            document.getElementById("step-verify").style.display = "none";
+            document.getElementById("step-login").style.display = "block";
+            document.getElementById("codigo").value = "";
+            document.getElementById("error-codigo").style.display = "none";
+            document.getElementById("success-codigo").style.display = "none";
+            intentosRestantes = 3;
         }
 
-        // ==== MOSTRAR ERROR DE BLOQUEO ====
-        function mostrarErrorBloqueo() {
-            const confirmar = confirm(
-                "⚠️ AppSheet está bloqueando el iframe porque tienes la verificación de email ACTIVADA.\n\n" +
-                "OPCIONES:\n" +
-                "1. Desactiva la verificación de email en AppSheet (Recomendado)\n" +
-                "2. Haz clic en OK para abrir AppSheet en ventana nueva\n\n" +
-                "¿Abrir en ventana nueva?"
-            );
-
-            if (confirmar) {
-                window.open(APPSHEET_URL, '_blank', 'width=' + screen.width + ',height=' + screen.height);
-                location.reload();
-            } else {
-                location.reload();
-            }
+        // ==== REENVIAR CÓDIGO ====
+        function reenviarCodigo() {
+            const btn = document.getElementById("btn-reenviar");
+            btn.disabled = true;
+            btn.textContent = "⏳ Enviando...";
+            
+            setTimeout(() => {
+                generarYEnviarCodigo();
+                btn.disabled = false;
+                btn.textContent = "🔄 Reenviar código";
+                
+                const successCodigo = document.getElementById("success-codigo");
+                successCodigo.textContent = "✅ Nuevo código enviado";
+                successCodigo.style.display = "block";
+                
+                setTimeout(() => {
+                    successCodigo.style.display = "none";
+                }, 3000);
+            }, 1500);
         }
 
-        // ==== ENTER PARA INGRESAR ====
+        // ==== VALIDAR EMAIL ====
+        function validarEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        // ==== ENTER PARA AVANZAR ====
         document.addEventListener("keypress", function(e) {
             if (e.key === "Enter") {
-                const loginVisible = document.getElementById("login-wrapper").style.display !== "none";
-                if (loginVisible) {
-                    verificar();
+                if (document.getElementById("step-login").style.display !== "none") {
+                    verificarCredenciales();
+                } else if (document.getElementById("step-verify").style.display !== "none") {
+                    verificarCodigo();
                 }
             }
         });
 
-        // ==== VERIFICAR SESIÓN ====
+        // ==== VERIFICAR SESIÓN AL CARGAR ====
         window.addEventListener("load", function() {
             try {
                 const authenticated = sessionStorage.getItem("authenticated");
                 const username = sessionStorage.getItem("username");
+                const loginTime = sessionStorage.getItem("loginTime");
+                const SESION_DURACION = 8 * 60 * 60 * 1000; // 8 horas
 
-                if (authenticated === "true" && username) {
-                    const continuar = confirm("Sesión activa de " + username + ". ¿Continuar?");
-                    if (continuar) {
-                        intentarCargarApp();
+                if (authenticated === "true" && username && loginTime) {
+                    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
+                    
+                    if (tiempoTranscurrido < SESION_DURACION) {
+                        mostrarApp();
                     } else {
                         sessionStorage.clear();
                     }
