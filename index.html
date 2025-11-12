@@ -5,115 +5,99 @@
     <title>Control Datos Boy</title>
     <meta name="description" content="App oficial de Control Datos Boy">
     <style>
-        /* Estilos para el formulario de login */
         body, html {
-            margin:0; 
-            padding:0; 
-            height:100%; 
-            background:linear-gradient(135deg,#1e3c72,#2a5298); 
-            font-family:Arial,sans-serif; 
-            display:flex; 
-            align-items:center; 
-            justify-content:center;
-            overflow: hidden; /* Importante para el iframe */
+            margin:0; padding:0; height:100%; overflow:hidden;
+            background:linear-gradient(135deg,#1e3c72,#2a5298);
+            font-family:Arial,sans-serif;
+            display:flex; align-items:center; justify-content:center;
         }
         .login-box {
             background:rgba(255,255,255,0.95);
-            padding:50px 40px;
-            border-radius:20px;
+            padding:50px 40px; border-radius:20px;
             box-shadow:0 15px 35px rgba(0,0,0,0.6);
-            width:90%;
-            max-width:380px;
-            text-align:center;
+            width:90%; max-width:380px; text-align:center;
         }
-        h2 {margin:0 0 20px;color:#1e3c72;font-size:26px;}
+        h2 {margin:0 0 20px; color:#1e3c72; font-size:26px;}
         input[type="text"], input[type="password"] {
-            width:100%;
-            padding:14px;
-            margin:12px 0;
-            border:1px solid #ccc;
-            border-radius:10px;
-            font-size:17px;
+            width:100%; padding:14px; margin:12px 0;
+            border:1px solid #ccc; border-radius:10px; font-size:17px;
+            box-sizing:border-box;
         }
         button {
-            background:#28a745;
-            color:white;
-            padding:14px 35px;
-            border:none;
-            border-radius:10px;
-            font-size:18px;
-            cursor:pointer;
-            margin-top:20px;
+            background:#28a745; color:white; padding:14px 35px;
+            border:none; border-radius:10px; font-size:18px;
+            cursor:pointer; margin-top:20px;
         }
         button:hover {background:#218838;}
-        .error {color:red;margin-top:15px;display:none;font-weight:bold;}
-
-        /* Estilos para el Iframe (cubrir toda la pantalla) */
+        .error {color:red; margin-top:15px; display:none; font-weight:bold;}
         #appsheet-frame {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: none; /* Inicialmente oculto */
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            border:none; display:none; z-index:9999;
         }
     </style>
 </head>
 <body>
-
     <div id="login-container" class="login-box">
         <h2>Control Datos Boy</h2>
         <p><strong>Ingreso a Bodega Rentísticos</strong></p>
-        
         <input type="text" id="usuario" placeholder="Usuario" autocomplete="off">
         <input type="password" id="password" placeholder="Contraseña">
         <button onclick="verificar()">INGRESAR</button>
-        
         <p class="error" id="error-msg">Usuario o contraseña incorrectos</p>
     </div>
 
-    <iframe id="appsheet-frame" 
-            src="https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f" 
-            allowfullscreen 
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation">
-    </iframe>
+    <!-- Iframe que cargará la app en modo embed -->
+    <iframe id="appsheet-frame" allowfullscreen></iframe>
 
     <script>
-        // ==== TUS USUARIOS Y CONTRASEÑAS ====
-        const usuarios = [
-            "admin:1234",
-            "jefe:rentistico",
-            "bodega:2025",
-            "user1:bodega2025"
-        ];
+        // ==== USUARIOS PERMITIDOS (usuario:contraseña) ====
+        const usuariosValidos = {
+            "admin": "1234",
+            "jefe": "rentistico",
+            "bodega": "2025",
+            "user1": "bodega2025"
+        };
+
+        // ==== EMAILS ASOCIADOS A CADA USUARIO ====
+        // ¡¡¡CAMBIAR ESTOS CORREOS POR LOS REALES QUE TIENEN ACCESO A LA APP!!!
+        const emailsAutorizados = {
+            "admin": "admin@bodega.com",
+            "jefe": "jefe.rentistico@bodega.com",
+            "bodega": "bodega.operario@bodega.com",
+            "user1": "usuario1@bodega.com"
+        };
+
+        // ID de tu app (lo tienes en la URL: 3e6b0cd9-2514-4c48-8d55-0bdba6a6861f)
+        const appId = "3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
 
         function verificar() {
-            const user = document.getElementById("usuario").value.trim();
+            const user = document.getElementById("usuario").value.trim().toLowerCase();
             const pass = document.getElementById("password").value;
-            const intento = user + ":" + pass;
             const errorMsg = document.getElementById("error-msg");
             const loginContainer = document.getElementById("login-container");
-            const appFrame = document.getElementById("appsheet-frame");
+            const frame = document.getElementById("appsheet-frame");
 
-            if (usuarios.includes(intento)) {
-                // Éxito: Ocultar el formulario de login
+            // Validar credenciales
+            if (usuariosValidos[user] && usuariosValidos[user] === pass) {
+                const email = emailsAutorizados[user];
+
+                // Construir URL de embed con login forzado
+                const embedUrl = `https://www.appsheet.com/embed/app/${appId}?email=${encodeURIComponent(email)}&fullScreen=true`;
+
+                // Cargar en el iframe
+                frame.src = embedUrl;
+                frame.style.display = "block";
                 loginContainer.style.display = "none";
-                
-                // Mostrar el iframe
-                appFrame.style.display = "block";
-                
-                // Cambiar el fondo para que no interfiera con el iframe
-                document.body.style.background = "#fff"; 
+                document.body.style.background = "#fff";
+                errorMsg.style.display = "none";
             } else {
-                // Error: Mostrar mensaje
                 errorMsg.style.display = "block";
             }
         }
 
-        // ENTER para ingresar
-        document.addEventListener("keypress", e => { 
-            if (e.key === "Enter") verificar(); 
+        // Permitir Enter
+        document.addEventListener("keypress", e => {
+            if (e.key === "Enter") verificar();
         });
     </script>
 </body>
