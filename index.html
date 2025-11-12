@@ -245,7 +245,7 @@
                 <p class="subtitle">Ingreso a Bodega Rentísticos</p>
                 
                 <input type="text" id="usuario" placeholder="Usuario" autocomplete="off" autofocus>
-                <input type="type" id="password" placeholder="Contraseña">
+                <input type="password" id="password" placeholder="Contraseña">
                 
                 <button onclick="verificarCredenciales()">GENERAR CÓDIGO</button>
                 
@@ -298,6 +298,7 @@
     </div>
 
     <script>
+        const TIEMPO_VISTA_CODIGO = 5;
         const usuarios = {
             "admin": "1234",
             "jefe": "rentistico",
@@ -346,20 +347,22 @@
         }
 
         function iniciarTemporizador() {
-            let tiempoRestante = 15;
+            let tiempoRestante = TIEMPO_VISTA_CODIGO;
             const tiempoDisplay = document.getElementById("tiempo-restante");
             const timerBarFill = document.getElementById("timer-bar-fill");
             
+            tiempoDisplay.textContent = tiempoRestante;
             timerBarFill.style.width = "100%";
+            timerBarFill.style.background = "white";
             
             timerInterval = setInterval(function() {
                 tiempoRestante--;
-                tiempoDisplay.textContent = tiempoRestante;
+                tiempoDisplay.textContent = tiempoRestante.toString().padStart(2, '0');
                 
-                const porcentaje = (tiempoRestante / 15) * 100;
+                const porcentaje = (tiempoRestante / TIEMPO_VISTA_CODIGO) * 100;
                 timerBarFill.style.width = porcentaje + "%";
                 
-                if (tiempoRestante <= 5) {
+                if (tiempoRestante <= 2) {
                     timerBarFill.style.background = "#ff6b6b";
                 }
                 
@@ -473,7 +476,7 @@
                 const authenticated = sessionStorage.getItem("authenticated");
                 const username = sessionStorage.getItem("username");
                 const loginTime = sessionStorage.getItem("loginTime");
-                const SESION_DURACION = 8 * 60 * 60 * 1000; 
+                const SESION_DURACION = 8 * 60 * 60 * 1000;
 
                 if (authenticated === "true" && username && loginTime) {
                     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
