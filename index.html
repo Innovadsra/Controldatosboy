@@ -12,10 +12,22 @@
             height: 100%;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        /* Contenedor del login */
+        #login-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
+        
         .login-box {
             background: rgba(255, 255, 255, 0.95);
             padding: 50px 40px;
@@ -25,16 +37,19 @@
             max-width: 380px;
             text-align: center;
         }
+        
         h2 {
             margin: 0 0 20px;
             color: #1e3c72;
             font-size: 26px;
         }
+        
         .subtitle {
             color: #333;
             margin-bottom: 30px;
             font-weight: bold;
         }
+        
         input[type="text"], 
         input[type="password"] {
             width: 100%;
@@ -45,10 +60,12 @@
             font-size: 17px;
             box-sizing: border-box;
         }
+        
         input:focus {
             outline: none;
             border-color: #1e3c72;
         }
+        
         button {
             background: #28a745;
             color: white;
@@ -61,12 +78,15 @@
             transition: background 0.3s;
             width: 100%;
         }
+        
         button:hover {
             background: #218838;
         }
+        
         button:active {
             transform: scale(0.98);
         }
+        
         .error {
             color: #dc3545;
             margin-top: 15px;
@@ -76,51 +96,133 @@
             padding: 10px;
             border-radius: 5px;
         }
-        .loading {
+        
+        /* Contenedor del iframe */
+        #app-container {
             display: none;
-            margin-top: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
         }
+        
+        #appsheet-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Barra superior con botón de cerrar sesión */
+        #top-bar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #1e3c72;
+            color: white;
+            padding: 10px 20px;
+            box-sizing: border-box;
+            z-index: 2000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #top-bar.visible {
+            display: flex;
+        }
+        
+        .user-info {
+            font-size: 14px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        /* Ajustar iframe cuando hay barra superior */
+        #app-container.with-bar #appsheet-frame {
+            height: calc(100% - 44px);
+            margin-top: 44px;
+        }
+        
+        /* Mensaje de carga del iframe */
+        .iframe-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #1e3c72;
+        }
+        
         .spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #1e3c72;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 0 auto 20px;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .loading-text {
-            color: #1e3c72;
-            font-size: 16px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
-    <div id="login-container" class="login-box">
-        <h2>Control Datos Boy</h2>
-        <p class="subtitle">Ingreso a Bodega Rentísticos</p>
-       
-        <input type="text" id="usuario" placeholder="Usuario" autocomplete="off" autofocus>
-        <input type="password" id="password" placeholder="Contraseña">
-        <button onclick="verificar()">INGRESAR</button>
-       
-        <p class="error" id="error-msg">❌ Usuario o contraseña incorrectos</p>
-        
-        <div class="loading" id="loading-msg">
-            <div class="spinner"></div>
-            <p class="loading-text">Redirigiendo a AppSheet...</p>
+    <!-- Pantalla de Login -->
+    <div id="login-wrapper">
+        <div class="login-box">
+            <h2>Control Datos Boy</h2>
+            <p class="subtitle">Ingreso a Bodega Rentísticos</p>
+           
+            <input type="text" id="usuario" placeholder="Usuario" autocomplete="off" autofocus>
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="verificar()">INGRESAR</button>
+           
+            <p class="error" id="error-msg">❌ Usuario o contraseña incorrectos</p>
         </div>
     </div>
 
-    <script>
-        console.log('Script cargado correctamente');
+    <!-- Barra superior (opcional) -->
+    <div id="top-bar">
+        <div class="user-info">
+            <span id="username-display"></span>
+        </div>
+        <button class="logout-btn" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
 
-        // ==== USUARIOS Y CONTRASEÑAS ====
+    <!-- Contenedor de la App -->
+    <div id="app-container">
+        <div class="iframe-loading" id="iframe-loading">
+            <div class="spinner"></div>
+            <p>Cargando aplicación...</p>
+        </div>
+        <iframe id="appsheet-frame"
+                src=""
+                allow="camera; microphone; geolocation"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-top-navigation allow-downloads">
+        </iframe>
+    </div>
+
+    <script>
+        // ==== CONFIGURACIÓN ====
         const usuarios = [
             "admin:1234",
             "jefe:rentistico",
@@ -128,24 +230,18 @@
             "user1:bodega2025"
         ];
 
-        // URL de AppSheet
         const APPSHEET_URL = "https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
+        const MOSTRAR_BARRA_SUPERIOR = false; // Cambiar a true si quieres mostrar la barra con cerrar sesión
 
+        // ==== FUNCIÓN DE LOGIN ====
         function verificar() {
-            console.log('Función verificar ejecutada');
-            
             const user = document.getElementById("usuario").value.trim();
             const pass = document.getElementById("password").value;
             const intento = user + ":" + pass;
             const errorMsg = document.getElementById("error-msg");
-            const loadingMsg = document.getElementById("loading-msg");
 
-            console.log('Usuario ingresado:', user);
-
-            // Ocultar mensaje de error previo
             errorMsg.style.display = "none";
 
-            // Validar campos vacíos
             if (!user || !pass) {
                 errorMsg.textContent = "⚠️ Por favor completa todos los campos";
                 errorMsg.style.display = "block";
@@ -153,67 +249,85 @@
             }
 
             if (usuarios.includes(intento)) {
-                console.log('Login exitoso');
-                
-                // Mostrar mensaje de carga
-                loadingMsg.style.display = "block";
-                
                 // Guardar sesión
                 try {
-                    localStorage.setItem("authenticated", "true");
-                    localStorage.setItem("username", user);
-                    localStorage.setItem("loginTime", Date.now().toString());
+                    sessionStorage.setItem("authenticated", "true");
+                    sessionStorage.setItem("username", user);
                 } catch (e) {
-                    console.log('localStorage no disponible:', e);
+                    console.log('sessionStorage no disponible');
                 }
-                
-                // Redirigir a AppSheet
-                setTimeout(function() {
-                    console.log('Redirigiendo a:', APPSHEET_URL);
-                    window.location.href = APPSHEET_URL;
-                }, 1000);
+
+                mostrarApp(user);
             } else {
-                console.log('Credenciales incorrectas');
                 errorMsg.textContent = "❌ Usuario o contraseña incorrectos";
                 errorMsg.style.display = "block";
             }
         }
 
-        // ENTER para ingresar
+        // ==== MOSTRAR APLICACIÓN ====
+        function mostrarApp(username) {
+            const loginWrapper = document.getElementById("login-wrapper");
+            const appContainer = document.getElementById("app-container");
+            const topBar = document.getElementById("top-bar");
+            const iframe = document.getElementById("appsheet-frame");
+            const usernameDisplay = document.getElementById("username-display");
+
+            // Ocultar login
+            loginWrapper.style.display = "none";
+
+            // Mostrar contenedor de app
+            appContainer.style.display = "block";
+
+            // Configurar barra superior si está habilitada
+            if (MOSTRAR_BARRA_SUPERIOR) {
+                topBar.classList.add("visible");
+                appContainer.classList.add("with-bar");
+                usernameDisplay.textContent = "👤 " + username;
+            }
+
+            // Cargar iframe
+            iframe.src = APPSHEET_URL;
+
+            // Ocultar mensaje de carga cuando el iframe cargue
+            iframe.onload = function() {
+                document.getElementById("iframe-loading").style.display = "none";
+            };
+        }
+
+        // ==== CERRAR SESIÓN ====
+        function cerrarSesion() {
+            if (confirm("¿Estás seguro de cerrar sesión?")) {
+                try {
+                    sessionStorage.removeItem("authenticated");
+                    sessionStorage.removeItem("username");
+                } catch (e) {
+                    console.log('Error al limpiar sesión');
+                }
+                location.reload();
+            }
+        }
+
+        // ==== ENTER PARA INGRESAR ====
         document.addEventListener("keypress", function(e) {
             if (e.key === "Enter") {
-                verificar();
+                const loginVisible = document.getElementById("login-wrapper").style.display !== "none";
+                if (loginVisible) {
+                    verificar();
+                }
             }
         });
 
-        // Verificar sesión activa al cargar
+        // ==== VERIFICAR SESIÓN AL CARGAR ====
         window.addEventListener("load", function() {
-            console.log('Página cargada');
-            
             try {
-                const authenticated = localStorage.getItem("authenticated");
-                const loginTime = localStorage.getItem("loginTime");
-                const SESION_DURACION = 24 * 60 * 60 * 1000; // 24 horas
+                const authenticated = sessionStorage.getItem("authenticated");
+                const username = sessionStorage.getItem("username");
 
-                if (authenticated === "true" && loginTime) {
-                    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
-                    
-                    if (tiempoTranscurrido < SESION_DURACION) {
-                        const username = localStorage.getItem("username");
-                        const irDirecto = confirm("Bienvenido de nuevo, " + username + ". ¿Deseas ir directamente a AppSheet?");
-                        
-                        if (irDirecto) {
-                            window.location.href = APPSHEET_URL;
-                        }
-                    } else {
-                        // Limpiar sesión expirada
-                        localStorage.removeItem("authenticated");
-                        localStorage.removeItem("username");
-                        localStorage.removeItem("loginTime");
-                    }
+                if (authenticated === "true" && username) {
+                    mostrarApp(username);
                 }
             } catch (e) {
-                console.log('Error al verificar sesión:', e);
+                console.log('Error al verificar sesión');
             }
         });
     </script>
