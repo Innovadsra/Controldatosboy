@@ -12,9 +12,20 @@
             height: 100%;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        /* Pantalla de Login */
+        #login-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
         
         .login-box {
@@ -72,10 +83,6 @@
             background: #218838;
         }
         
-        button:active {
-            transform: scale(0.98);
-        }
-        
         .error {
             color: #dc3545;
             margin-top: 15px;
@@ -85,56 +92,57 @@
             padding: 10px;
             border-radius: 5px;
         }
+
+        /* Contenedor del iframe */
+        #app-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 999;
+        }
         
-        .success {
-            color: #155724;
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
+        #appsheet-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Advertencia importante */
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
             padding: 15px;
             border-radius: 10px;
             margin-top: 20px;
-            display: none;
+            font-size: 13px;
+            text-align: left;
         }
-        
-        .success h3 {
-            margin: 0 0 10px 0;
-            font-size: 18px;
-        }
-        
-        .success p {
-            margin: 5px 0;
+
+        .warning-box strong {
+            display: block;
+            margin-bottom: 8px;
             font-size: 14px;
         }
-        
-        .success .icon {
-            font-size: 40px;
-            margin-bottom: 10px;
+
+        .warning-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
         }
-        
-        .back-btn {
-            background: #6c757d;
-            margin-top: 15px;
-        }
-        
-        .back-btn:hover {
-            background: #5a6268;
-        }
-        
-        .info-box {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 13px;
-            display: none;
+
+        .warning-box li {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <div id="login-form">
+    <!-- Pantalla de Login -->
+    <div id="login-wrapper">
+        <div class="login-box">
             <h2>Control Datos Boy</h2>
             <p class="subtitle">Ingreso a Bodega Rentísticos</p>
            
@@ -143,20 +151,29 @@
             <button onclick="verificar()">INGRESAR</button>
            
             <p class="error" id="error-msg">❌ Usuario o contraseña incorrectos</p>
-            <div class="info-box" id="info-box">
-                💡 <strong>Nota:</strong> La aplicación se abrirá en una nueva ventana. Si no se abre automáticamente, verifica que tu navegador permita ventanas emergentes.
+
+            <div class="warning-box">
+                <strong>⚠️ LIMITACIÓN TÉCNICA IMPORTANTE:</strong>
+                <p>AppSheet tiene verificación de email activa que bloquea el iframe. Por esto:</p>
+                <ul>
+                    <li>❌ NO se puede ocultar la URL de AppSheet</li>
+                    <li>❌ NO se puede cargar en iframe</li>
+                    <li>✅ SOLUCIÓN: Desactivar verificación en AppSheet</li>
+                </ul>
+                <p style="margin-top: 10px;"><strong>Para ocultar la URL necesitas:</strong></p>
+                <p style="font-size: 12px; margin: 5px 0;">1. Desactivar verificación de email en AppSheet, O</p>
+                <p style="font-size: 12px; margin: 5px 0;">2. Contratar un servidor proxy (backend)</p>
             </div>
         </div>
-        
-        <div class="success" id="success-msg">
-            <div class="icon">✅</div>
-            <h3>¡Acceso Autorizado!</h3>
-            <p><strong id="welcome-user"></strong></p>
-            <p>La aplicación se ha abierto en una nueva ventana.</p>
-            <p style="font-size: 12px; margin-top: 15px;">Si no se abrió automáticamente, haz clic en el botón:</p>
-            <button onclick="abrirAppSheet()">Abrir Aplicación</button>
-            <button class="back-btn" onclick="volverLogin()">Volver al Login</button>
-        </div>
+    </div>
+
+    <!-- Contenedor de la App (NO FUNCIONARÁ con verificación activa) -->
+    <div id="app-container">
+        <iframe id="appsheet-frame"
+                src=""
+                allow="camera; microphone; geolocation"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-top-navigation allow-downloads">
+        </iframe>
     </div>
 
     <script>
@@ -168,20 +185,17 @@
             "user1:bodega2025"
         ];
 
+        // URL de AppSheet
         const APPSHEET_URL = "https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
-        let ventanaApp = null;
-        let currentUser = "";
 
-        // ==== FUNCIÓN DE LOGIN ====
+        // ==== VERIFICAR LOGIN ====
         function verificar() {
             const user = document.getElementById("usuario").value.trim();
             const pass = document.getElementById("password").value;
             const intento = user + ":" + pass;
             const errorMsg = document.getElementById("error-msg");
-            const infoBox = document.getElementById("info-box");
 
             errorMsg.style.display = "none";
-            infoBox.style.display = "none";
 
             if (!user || !pass) {
                 errorMsg.textContent = "⚠️ Por favor completa todos los campos";
@@ -190,124 +204,117 @@
             }
 
             if (usuarios.includes(intento)) {
-                currentUser = user;
-                
                 // Guardar sesión
                 try {
                     sessionStorage.setItem("authenticated", "true");
                     sessionStorage.setItem("username", user);
-                    sessionStorage.setItem("loginTime", Date.now().toString());
                 } catch (e) {
                     console.log('sessionStorage no disponible');
                 }
 
-                // Mostrar mensaje de éxito
-                mostrarExito(user);
-                
-                // Abrir AppSheet
-                abrirAppSheet();
+                // Intentar cargar en iframe (solo funciona sin verificación de email)
+                intentarCargarApp();
             } else {
                 errorMsg.textContent = "❌ Usuario o contraseña incorrectos";
                 errorMsg.style.display = "block";
             }
         }
 
-        // ==== MOSTRAR MENSAJE DE ÉXITO ====
-        function mostrarExito(username) {
-            document.getElementById("login-form").style.display = "none";
-            document.getElementById("success-msg").style.display = "block";
-            document.getElementById("welcome-user").textContent = "Bienvenido, " + username;
+        // ==== INTENTAR CARGAR APP ====
+        function intentarCargarApp() {
+            const loginWrapper = document.getElementById("login-wrapper");
+            const appContainer = document.getElementById("app-container");
+            const iframe = document.getElementById("appsheet-frame");
+
+            // Ocultar login
+            loginWrapper.style.display = "none";
+            
+            // Mostrar iframe
+            appContainer.style.display = "block";
+            iframe.src = APPSHEET_URL;
+
+            // Detectar si el iframe fue bloqueado
+            let timeoutId = setTimeout(function() {
+                // Si después de 5 segundos no carga, probablemente está bloqueado
+                verificarSiCargo(iframe);
+            }, 5000);
+
+            iframe.onload = function() {
+                clearTimeout(timeoutId);
+                try {
+                    // Intentar acceder al contenido del iframe
+                    var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    console.log('Iframe cargado correctamente');
+                } catch (e) {
+                    // Si no puede acceder, está bloqueado por CORS
+                    console.log('Iframe bloqueado por AppSheet');
+                    mostrarErrorBloqueo();
+                }
+            };
+
+            iframe.onerror = function() {
+                clearTimeout(timeoutId);
+                mostrarErrorBloqueo();
+            };
         }
 
-        // ==== ABRIR APPSHEET ====
-        function abrirAppSheet() {
-            // Cerrar ventana anterior si existe
-            if (ventanaApp && !ventanaApp.closed) {
-                ventanaApp.close();
+        // ==== VERIFICAR SI EL IFRAME CARGÓ ====
+        function verificarSiCargo(iframe) {
+            try {
+                var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if (!iframeDoc || iframeDoc.body.innerHTML === "") {
+                    mostrarErrorBloqueo();
+                }
+            } catch (e) {
+                // Probablemente bloqueado, pero podría haber cargado igual
+                console.log('No se puede verificar el contenido del iframe');
             }
+        }
 
-            // Abrir en ventana nueva a pantalla completa
-            const ancho = window.screen.width;
-            const alto = window.screen.height;
-            
-            ventanaApp = window.open(
-                APPSHEET_URL,
-                'AppSheetWindow',
-                'width=' + ancho + ',height=' + alto + ',left=0,top=0,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes'
+        // ==== MOSTRAR ERROR DE BLOQUEO ====
+        function mostrarErrorBloqueo() {
+            const confirmar = confirm(
+                "⚠️ AppSheet está bloqueando el iframe porque tienes la verificación de email ACTIVADA.\n\n" +
+                "OPCIONES:\n" +
+                "1. Desactiva la verificación de email en AppSheet (Recomendado)\n" +
+                "2. Haz clic en OK para abrir AppSheet en ventana nueva\n\n" +
+                "¿Abrir en ventana nueva?"
             );
 
-            // Intentar poner en pantalla completa (no funciona en todos los navegadores por seguridad)
-            if (ventanaApp) {
-                try {
-                    ventanaApp.moveTo(0, 0);
-                    ventanaApp.resizeTo(screen.width, screen.height);
-                } catch (e) {
-                    console.log('No se pudo maximizar la ventana');
-                }
+            if (confirmar) {
+                window.open(APPSHEET_URL, '_blank', 'width=' + screen.width + ',height=' + screen.height);
+                location.reload();
             } else {
-                alert("⚠️ Por favor permite las ventanas emergentes en tu navegador para acceder a la aplicación.");
-                document.getElementById("info-box").style.display = "block";
-            }
-        }
-
-        // ==== VOLVER AL LOGIN ====
-        function volverLogin() {
-            document.getElementById("success-msg").style.display = "none";
-            document.getElementById("login-form").style.display = "block";
-            document.getElementById("usuario").value = "";
-            document.getElementById("password").value = "";
-            
-            // Cerrar ventana de AppSheet si está abierta
-            if (ventanaApp && !ventanaApp.closed) {
-                ventanaApp.close();
+                location.reload();
             }
         }
 
         // ==== ENTER PARA INGRESAR ====
         document.addEventListener("keypress", function(e) {
             if (e.key === "Enter") {
-                const loginVisible = document.getElementById("login-form").style.display !== "none";
+                const loginVisible = document.getElementById("login-wrapper").style.display !== "none";
                 if (loginVisible) {
                     verificar();
                 }
             }
         });
 
-        // ==== VERIFICAR SESIÓN AL CARGAR ====
+        // ==== VERIFICAR SESIÓN ====
         window.addEventListener("load", function() {
             try {
                 const authenticated = sessionStorage.getItem("authenticated");
                 const username = sessionStorage.getItem("username");
-                const loginTime = sessionStorage.getItem("loginTime");
-                const SESION_DURACION = 8 * 60 * 60 * 1000; // 8 horas
 
-                if (authenticated === "true" && username && loginTime) {
-                    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
-                    
-                    if (tiempoTranscurrido < SESION_DURACION) {
-                        const continuar = confirm("Bienvenido de nuevo, " + username + ". ¿Deseas abrir la aplicación?");
-                        if (continuar) {
-                            currentUser = username;
-                            mostrarExito(username);
-                            abrirAppSheet();
-                        }
+                if (authenticated === "true" && username) {
+                    const continuar = confirm("Sesión activa de " + username + ". ¿Continuar?");
+                    if (continuar) {
+                        intentarCargarApp();
                     } else {
-                        // Limpiar sesión expirada
                         sessionStorage.clear();
                     }
                 }
             } catch (e) {
                 console.log('Error al verificar sesión');
-            }
-        });
-
-        // Detectar cuando la ventana de AppSheet se cierra
-        window.addEventListener("focus", function() {
-            if (ventanaApp && ventanaApp.closed && document.getElementById("success-msg").style.display === "block") {
-                const reabrir = confirm("La aplicación se ha cerrado. ¿Deseas volver a abrirla?");
-                if (reabrir) {
-                    abrirAppSheet();
-                }
             }
         });
     </script>
