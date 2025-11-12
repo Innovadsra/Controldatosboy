@@ -5,20 +5,89 @@
     <title>Control Datos Boy</title>
     <meta name="description" content="App oficial de Control Datos Boy">
     <style>
-        body, html { 
-            margin:0; padding:0; height:100%; overflow:hidden; 
-            background:#000; 
+        body, html {
+            margin:0; padding:0; height:100%; overflow:hidden;
+            background:#000; font-family:Arial, sans-serif;
         }
-        iframe { 
-            position:absolute; top:0; left:0; 
-            width:100%; height:100%; border:none; 
+        /* Pantalla de login */
+        #login-screen {
+            position:absolute; top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            display:flex; align-items:center; justify-content:center;
+            z-index:10;
         }
+        .login-box {
+            background:rgba(255,255,255,0.95); padding:40px 30px;
+            border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5);
+            width:90%; max-width:350px; text-align:center;
+        }
+        .login-box h2 {
+            margin:0 0 20px; color:#1e3c72; font-size:24px;
+        }
+        input[type="text"], input[type="password"] {
+            width:100%; padding:12px; margin:10px 0;
+            border:1px solid #ccc; border-radius:8px; font-size:16px;
+        }
+        button {
+            background:#1e3c72; color:white; padding:12px 30px;
+            border:none; border-radius:8px; font-size:16px; cursor:pointer;
+            margin-top:15px;
+        }
+        button:hover { background:#2a5298; }
+        .error { color:red; margin-top:10px; display:none; }
+        /* AppSheet */
+        iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; display:none; }
     </style>
 </head>
 <body>
-    <iframe src="https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f" 
-            allowfullscreen 
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>🔐 CONTROL DATOS BOY</h2>
+            <p>Ingreso a Bodega Rentísticos</p>
+            <input type="text" id="usuario" placeholder="Usuario" autocomplete="off">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="verificar()">INGRESAR</button>
+            <p class="error" id="error-msg">Usuario o contraseña incorrectos</p>
+        </div>
+    </div>
+
+    <!-- APPSHEET (solo se muestra si el login es correcto) -->
+    <iframe id="appsheet-frame"
+            src="https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f"
+            allowfullscreen
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation">
     </iframe>
+
+    <script>
+        // ==== CAMBIA AQUÍ TUS USUARIOS Y CONTRASEÑAS ====
+        const credenciales = [
+            { usuario: "admin", password: "1234" },
+            { usuario: "user1", password: "bodega2025" },
+            { usuario: "jefe", password: "rentistico" }
+            // Agrega más líneas si quieres más usuarios
+        ];
+        // ================================================
+
+        function verificar() {
+            const user = document.getElementById("usuario").value.trim().toLowerCase();
+            const pass = document.getElementById("password").value;
+
+            const valido = credenciales.some(c => c.usuario === user && c.password === pass);
+
+            if (valido) {
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("appsheet-frame").style.display = "block";
+            } else {
+                document.getElementById("error-msg").style.display = "block";
+            }
+        }
+
+        // Permitir ENTER en los inputs
+        document.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") verificar();
+        });
+    </script>
 </body>
 </html>
