@@ -6,33 +6,70 @@
     <meta name="description" content="App oficial de Control Datos Boy">
     <style>
         body, html {
-            margin:0; padding:0; height:100%; overflow:hidden;
+            margin:0;
+            padding:0;
+            height:100%;
             background:linear-gradient(135deg,#1e3c72,#2a5298);
             font-family:Arial,sans-serif;
-            display:flex; align-items:center; justify-content:center;
+            display:flex;
+            align-items:center;
+            justify-content:center;
         }
         .login-box {
             background:rgba(255,255,255,0.95);
-            padding:50px 40px; border-radius:20px;
+            padding:50px 40px;
+            border-radius:20px;
             box-shadow:0 15px 35px rgba(0,0,0,0.6);
-            width:90%; max-width:380px; text-align:center;
+            width:90%;
+            max-width:380px;
+            text-align:center;
         }
-        h2 {margin:0 0 20px; color:#1e3c72; font-size:26px;}
+        h2 {margin:0 0 20px;color:#1e3c72;font-size:26px;}
         input[type="text"], input[type="password"] {
-            width:100%; padding:14px; margin:12px 0;
-            border:1px solid #ccc; border-radius:10px; font-size:17px;
+            width:100%;
+            padding:14px;
+            margin:12px 0;
+            border:1px solid #ccc;
+            border-radius:10px;
+            font-size:17px;
             box-sizing:border-box;
         }
         button {
-            background:#28a745; color:white; padding:14px 35px;
-            border:none; border-radius:10px; font-size:18px;
-            cursor:pointer; margin-top:20px;
+            background:#28a745;
+            color:white;
+            padding:14px 35px;
+            border:none;
+            border-radius:10px;
+            font-size:18px;
+            cursor:pointer;
+            margin-top:20px;
+            transition:background 0.3s;
         }
         button:hover {background:#218838;}
-        .error {color:red; margin-top:15px; display:none; font-weight:bold;}
-        #appsheet-frame {
-            position:fixed; top:0; left:0; width:100%; height:100%;
-            border:none; display:none; z-index:9999;
+        .error {
+            color:red;
+            margin-top:15px;
+            display:none;
+            font-weight:bold;
+        }
+        .loading {
+            display:none;
+            margin-top:20px;
+            color:#1e3c72;
+            font-size:16px;
+        }
+        .spinner {
+            border:4px solid #f3f3f3;
+            border-top:4px solid #1e3c72;
+            border-radius:50%;
+            width:40px;
+            height:40px;
+            animation:spin 1s linear infinite;
+            margin:20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -40,79 +77,87 @@
     <div id="login-container" class="login-box">
         <h2>Control Datos Boy</h2>
         <p><strong>Ingreso a Bodega Rentísticos</strong></p>
+       
         <input type="text" id="usuario" placeholder="Usuario" autocomplete="off">
         <input type="password" id="password" placeholder="Contraseña">
         <button onclick="verificar()">INGRESAR</button>
+       
         <p class="error" id="error-msg">Usuario o contraseña incorrectos</p>
+        
+        <div class="loading" id="loading-msg">
+            <div class="spinner"></div>
+            <p>Redirigiendo a AppSheet...</p>
+        </div>
     </div>
 
-    <!-- Iframe con permiso para storage access -->
-    <iframe id="appsheet-frame" allow="storage-access" allowfullscreen></iframe>
-
     <script>
-        // ==== USUARIOS PERMITIDOS (usuario:contraseña) ====
-        const usuariosValidos = {
-            "admin": "1234",
-            "jefe": "rentistico",
-            "bodega": "2025",
-            "user1": "bodega2025"
-        };
+        // ==== TUS USUARIOS Y CONTRASEÑAS ====
+        const usuarios = [
+            "admin:1234",
+            "jefe:rentistico",
+            "bodega:2025",
+            "user1:bodega2025"
+        ];
 
-        // ==== EMAILS ASOCIADOS A CADA USUARIO (correos autorizados en AppSheet) ====
-        const emailsAutorizados = {
-            "admin": "admin@bodega.com",
-            "jefe": "jefe.rentistico@bodega.com",
-            "bodega": "bodega.operario@bodega.com",
-            "user1": "usuario1@bodega.com"
-        };
-
-        // ID de la app
-        const appId = "3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
+        // URL de tu aplicación AppSheet
+        const APPSHEET_URL = "https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
 
         function verificar() {
-            const user = document.getElementById("usuario").value.trim().toLowerCase();
+            const user = document.getElementById("usuario").value.trim();
             const pass = document.getElementById("password").value;
+            const intento = user + ":" + pass;
             const errorMsg = document.getElementById("error-msg");
-            const loginContainer = document.getElementById("login-container");
-            const frame = document.getElementById("appsheet-frame");
+            const loadingMsg = document.getElementById("loading-msg");
 
-            if (usuariosValidos[user] && usuariosValidos[user] === pass) {
-                const email = emailsAutorizados[user];
-                const appUrl = `https://www.appsheet.com/start/${appId}?email=${encodeURIComponent(email)}&fullScreen=true`;
+            // Ocultar mensaje de error previo
+            errorMsg.style.display = "none";
 
-                // Intento directo en iframe
-                frame.src = appUrl;
-                frame.style.display = "block";
-                loginContainer.style.display = "none";
-                document.body.style.background = "#fff";
-                errorMsg.style.display = "none";
-
-                // Fallback: Si falla storage (después de 5s), abre popup para sign-in
+            if (usuarios.includes(intento)) {
+                // Éxito: Mostrar mensaje de carga
+                loadingMsg.style.display = "block";
+                
+                // Guardar sesión en localStorage (opcional, para recordar el login)
+                localStorage.setItem("authenticated", "true");
+                localStorage.setItem("username", user);
+                localStorage.setItem("loginTime", Date.now());
+                
+                // Redirigir a AppSheet después de 1 segundo
                 setTimeout(() => {
-                    if (frame.contentWindow && frame.contentWindow.document.body.innerHTML.includes("NotAllowedError")) {
-                        openSignInPopup(appUrl);
-                    }
-                }, 5000);
+                    window.location.href = APPSHEET_URL;
+                }, 1000);
             } else {
+                // Error: Mostrar mensaje
                 errorMsg.style.display = "block";
             }
         }
 
-        // Función fallback: Abre popup para sign-in, cierra al completar
-        function openSignInPopup(url) {
-            const popup = window.open(url, "_blank", "width=600,height=800");
-            const checkClosed = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(checkClosed);
-                    // Recarga iframe después de sign-in
-                    document.getElementById("appsheet-frame").src = url;
-                }
-            }, 500);
-        }
-
-        // Permitir Enter
+        // ENTER para ingresar
         document.addEventListener("keypress", e => {
             if (e.key === "Enter") verificar();
+        });
+
+        // Verificar si ya hay una sesión activa (opcional)
+        window.addEventListener("load", () => {
+            const authenticated = localStorage.getItem("authenticated");
+            const loginTime = localStorage.getItem("loginTime");
+            const SESION_DURACION = 24 * 60 * 60 * 1000; // 24 horas
+
+            if (authenticated === "true" && loginTime) {
+                const tiempoTranscurrido = Date.now() - parseInt(loginTime);
+                
+                // Si la sesión sigue válida, ofrecer redirigir directamente
+                if (tiempoTranscurrido < SESION_DURACION) {
+                    const username = localStorage.getItem("username");
+                    if (confirm(`Bienvenido de nuevo, ${username}. ¿Deseas ir directamente a AppSheet?`)) {
+                        window.location.href = APPSHEET_URL;
+                    }
+                } else {
+                    // Limpiar sesión expirada
+                    localStorage.removeItem("authenticated");
+                    localStorage.removeItem("username");
+                    localStorage.removeItem("loginTime");
+                }
+            }
         });
     </script>
 </body>
