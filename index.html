@@ -9,7 +9,6 @@
             margin:0; padding:0; height:100%; overflow:hidden;
             background:#000; font-family:Arial, sans-serif;
         }
-        /* Pantalla de login */
         #login-screen {
             position:absolute; top:0; left:0; width:100%; height:100%;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
@@ -26,7 +25,7 @@
         }
         input[type="text"], input[type="password"] {
             width:100%; padding:12px; margin:10px 0;
-            border:1px solid #ccc; border-radius:8px; font-size:16px;
+           51            border:1px solid #ccc; border-radius:8px; font-size:16px;
         }
         button {
             background:#1e3c72; color:white; padding:12px 30px;
@@ -35,8 +34,6 @@
         }
         button:hover { background:#2a5298; }
         .error { color:red; margin-top:10px; display:none; }
-        /* AppSheet */
-        iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; display:none; }
     </style>
 </head>
 <body>
@@ -53,21 +50,16 @@
         </div>
     </div>
 
-    <!-- APPSHEET (solo se muestra si el login es correcto) -->
-    <iframe id="appsheet-frame"
-            src="https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f"
-            allowfullscreen
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation">
-    </iframe>
-
     <script>
         // ==== CAMBIA AQUÍ TUS USUARIOS Y CONTRASEÑAS ====
         const credenciales = [
             { usuario: "admin", password: "1234" },
             { usuario: "user1", password: "bodega2025" },
             { usuario: "jefe", password: "rentistico" }
-            // Agrega más líneas si quieres más usuarios
+            // Agrega más si quieres
         ];
+
+        const URL_APSHEET = "https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
         // ================================================
 
         function verificar() {
@@ -77,14 +69,14 @@
             const valido = credenciales.some(c => c.usuario === user && c.password === pass);
 
             if (valido) {
-                document.getElementById("login-screen").style.display = "none";
-                document.getElementById("appsheet-frame").style.display = "block";
+                // Redirecciona directo a AppSheet (funciona perfecto)
+                window.location.href = URL_APSHEET;
             } else {
                 document.getElementById("error-msg").style.display = "block";
             }
         }
 
-        // Permitir ENTER en los inputs
+        // ENTER para ingresar
         document.addEventListener("keypress", function(e) {
             if (e.key === "Enter") verificar();
         });
