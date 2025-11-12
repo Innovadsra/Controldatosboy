@@ -46,8 +46,8 @@
         <p class="error" id="error-msg">Usuario o contraseña incorrectos</p>
     </div>
 
-    <!-- Iframe que cargará la app en modo embed -->
-    <iframe id="appsheet-frame" allowfullscreen></iframe>
+    <!-- Iframe con permiso para storage access -->
+    <iframe id="appsheet-frame" allow="storage-access" allowfullscreen></iframe>
 
     <script>
         // ==== USUARIOS PERMITIDOS (usuario:contraseña) ====
@@ -58,8 +58,7 @@
             "user1": "bodega2025"
         };
 
-        // ==== EMAILS ASOCIADOS A CADA USUARIO ====
-        // ¡¡¡CAMBIAR ESTOS CORREOS POR LOS REALES QUE TIENEN ACCESO A LA APP!!!
+        // ==== EMAILS ASOCIADOS A CADA USUARIO (correos autorizados en AppSheet) ====
         const emailsAutorizados = {
             "admin": "admin@bodega.com",
             "jefe": "jefe.rentistico@bodega.com",
@@ -67,7 +66,7 @@
             "user1": "usuario1@bodega.com"
         };
 
-        // ID de tu app (lo tienes en la URL: 3e6b0cd9-2514-4c48-8d55-0bdba6a6861f)
+        // ID de la app
         const appId = "3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
 
         function verificar() {
@@ -77,22 +76,38 @@
             const loginContainer = document.getElementById("login-container");
             const frame = document.getElementById("appsheet-frame");
 
-            // Validar credenciales
             if (usuariosValidos[user] && usuariosValidos[user] === pass) {
                 const email = emailsAutorizados[user];
+                const appUrl = `https://www.appsheet.com/start/${appId}?email=${encodeURIComponent(email)}&fullScreen=true`;
 
-                // Construir URL de embed con login forzado
-                const embedUrl = `https://www.appsheet.com/embed/app/${appId}?email=${encodeURIComponent(email)}&fullScreen=true`;
-
-                // Cargar en el iframe
-                frame.src = embedUrl;
+                // Intento directo en iframe
+                frame.src = appUrl;
                 frame.style.display = "block";
                 loginContainer.style.display = "none";
                 document.body.style.background = "#fff";
                 errorMsg.style.display = "none";
+
+                // Fallback: Si falla storage (después de 5s), abre popup para sign-in
+                setTimeout(() => {
+                    if (frame.contentWindow && frame.contentWindow.document.body.innerHTML.includes("NotAllowedError")) {
+                        openSignInPopup(appUrl);
+                    }
+                }, 5000);
             } else {
                 errorMsg.style.display = "block";
             }
+        }
+
+        // Función fallback: Abre popup para sign-in, cierra al completar
+        function openSignInPopup(url) {
+            const popup = window.open(url, "_blank", "width=600,height=800");
+            const checkClosed = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(checkClosed);
+                    // Recarga iframe después de sign-in
+                    document.getElementById("appsheet-frame").src = url;
+                }
+            }, 500);
         }
 
         // Permitir Enter
