@@ -14,7 +14,6 @@
             overflow: hidden;
         }
         
-        /* Fondo del login */
         #login-wrapper {
             display: flex;
             align-items: center;
@@ -63,8 +62,7 @@
         }
         
         input[type="text"], 
-        input[type="password"],
-        input[type="email"] {
+        input[type="password"] {
             width: 100%;
             padding: 14px;
             margin: 12px 0;
@@ -138,24 +136,81 @@
             font-size: 14px;
             display: none;
         }
-        
-        .info {
-            background: #d1ecf1;
-            color: #0c5460;
-            padding: 12px;
-            border-radius: 8px;
+
+        .code-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+
+        .code-display.visible {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .code-number {
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: 15px;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', monospace;
+        }
+
+        .code-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.9;
+        }
+
+        .timer {
+            font-size: 18px;
             margin-top: 15px;
-            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .timer-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+            transition: width 0.3s linear;
         }
 
         .code-input {
-            font-size: 24px !important;
-            letter-spacing: 10px;
+            font-size: 32px !important;
+            letter-spacing: 15px;
             text-align: center;
             font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 13px;
         }
         
-        /* Contenedor del iframe */
         #app-container {
             display: none;
             position: fixed;
@@ -172,74 +227,68 @@
             border: none;
         }
 
-        /* Spinner de carga */
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #1e3c72;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 10px auto;
+        #step-code {
             display: none;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
 
-        /* Paso de verificación oculto inicialmente */
         #step-verify {
             display: none;
         }
     </style>
 </head>
 <body>
-    <!-- Pantalla de Login -->
     <div id="login-wrapper">
         <div class="login-box">
-            <!-- PASO 1: Login con usuario y contraseña -->
             <div id="step-login">
-                <div class="step-indicator">🔐 Paso 1 de 2</div>
+                <div class="step-indicator">🔐 Paso 1 de 3</div>
                 <h2>Control Datos Boy</h2>
                 <p class="subtitle">Ingreso a Bodega Rentísticos</p>
-               
-                <input type="text" id="usuario" placeholder="Usuario" autocomplete="off" autofocus>
-                <input type="password" id="password" placeholder="Contraseña">
-                <input type="email" id="email" placeholder="Correo electrónico">
                 
-                <button onclick="verificarCredenciales()">CONTINUAR</button>
+                <input type="text" id="usuario" placeholder="Usuario" autocomplete="off" autofocus>
+                <input type="type" id="password" placeholder="Contraseña">
+                
+                <button onclick="verificarCredenciales()">GENERAR CÓDIGO</button>
                 
                 <p class="error" id="error-msg"></p>
-                <div class="spinner" id="spinner-login"></div>
             </div>
 
-            <!-- PASO 2: Verificación por código -->
-            <div id="step-verify">
-                <div class="step-indicator">✉️ Paso 2 de 2</div>
-                <h2>Verificación de Seguridad</h2>
-                <p class="subtitle">Ingresa el código de 6 dígitos</p>
+            <div id="step-code">
+                <div class="step-indicator">🎯 Paso 2 de 3</div>
+                <h2>Código de Acceso</h2>
+                <p class="subtitle">Memoriza este código</p>
                 
-                <div class="info">
-                    📧 Hemos enviado un código de verificación a:<br>
-                    <strong id="email-display"></strong>
+                <div class="code-display visible">
+                    <div class="code-label">Tu código de acceso es:</div>
+                    <div class="code-number" id="codigo-generado">000000</div>
+                    <div class="timer">
+                        ⏱️ Tiempo restante: <span id="tiempo-restante">15</span>s
+                    </div>
+                    <div class="timer-bar">
+                        <div class="timer-bar-fill" id="timer-bar-fill"></div>
+                    </div>
                 </div>
+
+                <div class="info-box">
+                    💡 <strong>Importante:</strong> Memoriza o anota este código. Lo necesitarás en el siguiente paso.
+                </div>
+            </div>
+
+            <div id="step-verify">
+                <div class="step-indicator">✅ Paso 3 de 3</div>
+                <h2>Verificación</h2>
+                <p class="subtitle">Ingresa el código que se mostró</p>
                 
-                <input type="text" id="codigo" placeholder="000000" maxlength="6" class="code-input" autocomplete="off">
+                <input type="text" id="codigo-input" placeholder="000000" maxlength="6" class="code-input" autocomplete="off">
                 
-                <button onclick="verificarCodigo()">VERIFICAR CÓDIGO</button>
-                <button class="secondary-btn" onclick="volverLogin()">← Volver</button>
-                <button class="secondary-btn" onclick="reenviarCodigo()" id="btn-reenviar">🔄 Reenviar código</button>
+                <button onclick="verificarCodigo()">INGRESAR</button>
+                <button class="secondary-btn" onclick="volverLogin()">← Volver al inicio</button>
                 
                 <p class="error" id="error-codigo"></p>
                 <p class="success" id="success-codigo"></p>
-                <div class="spinner" id="spinner-verify"></div>
             </div>
         </div>
     </div>
 
-    <!-- Contenedor de la App -->
     <div id="app-container">
         <iframe id="appsheet-frame"
                 src=""
@@ -249,245 +298,166 @@
     </div>
 
     <script>
-        // ==== CONFIGURACIÓN DE USUARIOS ====
         const usuarios = {
-            "admin": {
-                password: "1234",
-                email: "admin@example.com"
-            },
-            "jefe": {
-                password: "rentistico",
-                email: "jefe@example.com"
-            },
-            "bodega": {
-                password: "2025",
-                email: "bodega@example.com"
-            },
-            "user1": {
-                password: "bodega2025",
-                email: "user1@example.com"
-            }
+            "admin": "1234",
+            "jefe": "rentistico",
+            "bodega": "2025",
+            "user1": "bodega2025"
         };
 
         const APPSHEET_URL = "https://www.appsheet.com/start/3e6b0cd9-2514-4c48-8d55-0bdba6a6861f";
         
         let codigoGenerado = "";
         let usuarioActual = "";
-        let emailActual = "";
         let intentosRestantes = 3;
+        let timerInterval = null;
 
-        // ==== PASO 1: VERIFICAR CREDENCIALES ====
         function verificarCredenciales() {
             const user = document.getElementById("usuario").value.trim();
             const pass = document.getElementById("password").value;
-            const email = document.getElementById("email").value.trim();
             const errorMsg = document.getElementById("error-msg");
-            const spinner = document.getElementById("spinner-login");
 
             errorMsg.style.display = "none";
 
-            // Validaciones
-            if (!user || !pass || !email) {
+            if (!user || !pass) {
                 errorMsg.textContent = "⚠️ Por favor completa todos los campos";
                 errorMsg.style.display = "block";
                 return;
             }
 
-            if (!validarEmail(email)) {
-                errorMsg.textContent = "⚠️ Ingresa un correo electrónico válido";
-                errorMsg.style.display = "block";
-                return;
-            }
-
-            // Verificar usuario y contraseña
-            if (usuarios[user] && usuarios[user].password === pass) {
-                // Validar email (opcional: puedes hacer que coincida exactamente)
+            if (usuarios[user] && usuarios[user] === pass) {
                 usuarioActual = user;
-                emailActual = email;
-                
-                // Mostrar spinner
-                spinner.style.display = "block";
-                
-                // Generar y "enviar" código
-                setTimeout(() => {
-                    generarYEnviarCodigo();
-                    spinner.style.display = "none";
-                }, 1500);
+                mostrarCodigoGenerado();
             } else {
                 errorMsg.textContent = "❌ Usuario o contraseña incorrectos";
                 errorMsg.style.display = "block";
             }
         }
 
-        // ==== GENERAR Y ENVIAR CÓDIGO ====
-        function generarYEnviarCodigo() {
-            // Generar código de 6 dígitos
+        function mostrarCodigoGenerado() {
             codigoGenerado = Math.floor(100000 + Math.random() * 900000).toString();
-            intentosRestantes = 3;
             
-            // Simular envío de email
-            console.log("=================================");
-            console.log("📧 CÓDIGO DE VERIFICACIÓN");
-            console.log("=================================");
-            console.log("Usuario:", usuarioActual);
-            console.log("Email:", emailActual);
-            console.log("Código:", codigoGenerado);
-            console.log("=================================");
-            
-            // AQUÍ INTEGRARÍAS UN SERVICIO DE EMAIL REAL
-            // Ejemplos: EmailJS, SendGrid, Mailgun, etc.
-            enviarEmailReal(emailActual, codigoGenerado);
-            
-            // Mostrar paso 2
             document.getElementById("step-login").style.display = "none";
-            document.getElementById("step-verify").style.display = "block";
-            document.getElementById("email-display").textContent = emailActual;
-            document.getElementById("codigo").focus();
+            document.getElementById("step-code").style.display = "block";
+            
+            document.getElementById("codigo-generado").textContent = codigoGenerado;
+            
+            iniciarTemporizador();
         }
 
-        // ==== ENVIAR EMAIL REAL (USANDO EMAILJS - GRATIS) ====
-        function enviarEmailReal(email, codigo) {
-            // Para usar EmailJS (servicio gratuito de envío de emails):
-            // 1. Regístrate en https://www.emailjs.com/
-            // 2. Crea un servicio de email
-            // 3. Crea una plantilla
-            // 4. Reemplaza estos IDs con los tuyos
+        function iniciarTemporizador() {
+            let tiempoRestante = 15;
+            const tiempoDisplay = document.getElementById("tiempo-restante");
+            const timerBarFill = document.getElementById("timer-bar-fill");
             
-            // IMPORTANTE: Por seguridad, esto es solo una simulación
-            // En la consola del navegador verás el código
+            timerBarFill.style.width = "100%";
             
-            alert("✅ Código enviado a " + email + "\n\n🔍 PARA PRUEBAS: Revisa la consola del navegador (F12) para ver el código");
-            
-            /* EJEMPLO DE INTEGRACIÓN CON EMAILJS:
-            
-            emailjs.send("service_id", "template_id", {
-                to_email: email,
-                codigo: codigo,
-                usuario: usuarioActual
-            }).then(
-                function(response) {
-                    console.log("Email enviado", response);
-                },
-                function(error) {
-                    console.log("Error al enviar email", error);
+            timerInterval = setInterval(function() {
+                tiempoRestante--;
+                tiempoDisplay.textContent = tiempoRestante;
+                
+                const porcentaje = (tiempoRestante / 15) * 100;
+                timerBarFill.style.width = porcentaje + "%";
+                
+                if (tiempoRestante <= 5) {
+                    timerBarFill.style.background = "#ff6b6b";
                 }
-            );
-            */
+                
+                if (tiempoRestante <= 0) {
+                    clearInterval(timerInterval);
+                    mostrarPasoVerificacion();
+                }
+            }, 1000);
         }
 
-        // ==== PASO 2: VERIFICAR CÓDIGO ====
+        function mostrarPasoVerificacion() {
+            document.getElementById("step-code").style.display = "none";
+            document.getElementById("step-verify").style.display = "block";
+            document.getElementById("codigo-input").focus();
+            intentosRestantes = 3;
+        }
+
         function verificarCodigo() {
-            const codigoIngresado = document.getElementById("codigo").value.trim();
+            const codigoIngresado = document.getElementById("codigo-input").value.trim();
             const errorCodigo = document.getElementById("error-codigo");
             const successCodigo = document.getElementById("success-codigo");
-            const spinner = document.getElementById("spinner-verify");
 
             errorCodigo.style.display = "none";
             successCodigo.style.display = "none";
 
             if (!codigoIngresado || codigoIngresado.length !== 6) {
-                errorCodigo.textContent = "⚠️ Ingresa un código de 6 dígitos";
+                errorCodigo.textContent = "⚠️ Ingresa el código de 6 dígitos";
                 errorCodigo.style.display = "block";
                 return;
             }
 
-            // Mostrar spinner
-            spinner.style.display = "block";
-
-            // Simular verificación
-            setTimeout(() => {
-                spinner.style.display = "none";
-
-                if (codigoIngresado === codigoGenerado) {
-                    // Código correcto
-                    successCodigo.textContent = "✅ Código verificado correctamente";
-                    successCodigo.style.display = "block";
-                    
-                    // Guardar sesión
-                    try {
-                        sessionStorage.setItem("authenticated", "true");
-                        sessionStorage.setItem("username", usuarioActual);
-                        sessionStorage.setItem("loginTime", Date.now().toString());
-                    } catch (e) {
-                        console.log('sessionStorage no disponible');
-                    }
-                    
-                    // Mostrar app después de 1 segundo
-                    setTimeout(() => {
-                        mostrarApp();
-                    }, 1000);
-                } else {
-                    // Código incorrecto
-                    intentosRestantes--;
-                    
-                    if (intentosRestantes > 0) {
-                        errorCodigo.textContent = "❌ Código incorrecto. Te quedan " + intentosRestantes + " intentos";
-                        errorCodigo.style.display = "block";
-                        document.getElementById("codigo").value = "";
-                        document.getElementById("codigo").focus();
-                    } else {
-                        errorCodigo.textContent = "🚫 Demasiados intentos fallidos. Vuelve a iniciar sesión";
-                        errorCodigo.style.display = "block";
-                        setTimeout(() => {
-                            volverLogin();
-                        }, 2000);
-                    }
+            if (codigoIngresado === codigoGenerado) {
+                successCodigo.textContent = "✅ Código correcto. Ingresando...";
+                successCodigo.style.display = "block";
+                
+                try {
+                    sessionStorage.setItem("authenticated", "true");
+                    sessionStorage.setItem("username", usuarioActual);
+                    sessionStorage.setItem("loginTime", Date.now().toString());
+                } catch (e) {
+                    console.log('sessionStorage no disponible');
                 }
-            }, 800);
+                
+                setTimeout(function() {
+                    mostrarApp();
+                }, 1000);
+            } else {
+                intentosRestantes--;
+                
+                if (intentosRestantes > 0) {
+                    errorCodigo.textContent = "❌ Código incorrecto. Te quedan " + intentosRestantes + " intentos";
+                    errorCodigo.style.display = "block";
+                    document.getElementById("codigo-input").value = "";
+                    document.getElementById("codigo-input").focus();
+                } else {
+                    errorCodigo.textContent = "🚫 Demasiados intentos fallidos. Vuelve a iniciar";
+                    errorCodigo.style.display = "block";
+                    setTimeout(function() {
+                        volverLogin();
+                    }, 2000);
+                }
+            }
         }
 
-        // ==== MOSTRAR APLICACIÓN ====
         function mostrarApp() {
             const loginWrapper = document.getElementById("login-wrapper");
             const appContainer = document.getElementById("app-container");
             const iframe = document.getElementById("appsheet-frame");
 
-            // Ocultar login
             loginWrapper.style.display = "none";
             
-            // Mostrar app
             appContainer.style.display = "block";
             iframe.src = APPSHEET_URL;
         }
 
-        // ==== VOLVER AL LOGIN ====
         function volverLogin() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            document.getElementById("step-code").style.display = "none";
             document.getElementById("step-verify").style.display = "none";
             document.getElementById("step-login").style.display = "block";
-            document.getElementById("codigo").value = "";
+            
+            document.getElementById("usuario").value = "";
+            document.getElementById("password").value = "";
+            document.getElementById("codigo-input").value = "";
+            document.getElementById("error-msg").style.display = "none";
             document.getElementById("error-codigo").style.display = "none";
             document.getElementById("success-codigo").style.display = "none";
-            intentosRestantes = 3;
-        }
-
-        // ==== REENVIAR CÓDIGO ====
-        function reenviarCodigo() {
-            const btn = document.getElementById("btn-reenviar");
-            btn.disabled = true;
-            btn.textContent = "⏳ Enviando...";
             
-            setTimeout(() => {
-                generarYEnviarCodigo();
-                btn.disabled = false;
-                btn.textContent = "🔄 Reenviar código";
-                
-                const successCodigo = document.getElementById("success-codigo");
-                successCodigo.textContent = "✅ Nuevo código enviado";
-                successCodigo.style.display = "block";
-                
-                setTimeout(() => {
-                    successCodigo.style.display = "none";
-                }, 3000);
-            }, 1500);
+            document.getElementById("timer-bar-fill").style.background = "white";
+            document.getElementById("timer-bar-fill").style.width = "100%";
+            
+            intentosRestantes = 3;
+            codigoGenerado = "";
         }
 
-        // ==== VALIDAR EMAIL ====
-        function validarEmail(email) {
-            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return regex.test(email);
-        }
-
-        // ==== ENTER PARA AVANZAR ====
         document.addEventListener("keypress", function(e) {
             if (e.key === "Enter") {
                 if (document.getElementById("step-login").style.display !== "none") {
@@ -498,13 +468,12 @@
             }
         });
 
-        // ==== VERIFICAR SESIÓN AL CARGAR ====
         window.addEventListener("load", function() {
             try {
                 const authenticated = sessionStorage.getItem("authenticated");
                 const username = sessionStorage.getItem("username");
                 const loginTime = sessionStorage.getItem("loginTime");
-                const SESION_DURACION = 8 * 60 * 60 * 1000; // 8 horas
+                const SESION_DURACION = 8 * 60 * 60 * 1000; 
 
                 if (authenticated === "true" && username && loginTime) {
                     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
