@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Datos Boy</title>
-    <meta name="description" content="App oficial de Control Datos Boy">
+    <title>Control INPEC</title>
+    <meta name="description" content="App oficial">
     <style>
         body, html {
             margin: 0;
@@ -61,8 +61,7 @@
             font-weight: bold;
         }
         
-        input[type="text"], 
-        input[type="password"] {
+        input[type="text"] {
             width: 100%;
             padding: 14px;
             margin: 12px 0;
@@ -239,21 +238,8 @@
 <body>
     <div id="login-wrapper">
         <div class="login-box">
-            <div id="step-login">
-                <div class="step-indicator">🔐 Paso 1 de 3</div>
-                <h2>Control Datos Boy</h2>
-                <p class="subtitle">Ingreso a Bodega Rentísticos</p>
-                
-                <input type="text" id="usuario" placeholder="Usuario" autocomplete="off" autofocus>
-                <input type="password" id="password" placeholder="Contraseña">
-                
-                <button onclick="verificarCredenciales()">GENERAR CÓDIGO</button>
-                
-                <p class="error" id="error-msg"></p>
-            </div>
-
             <div id="step-code">
-                <div class="step-indicator">🎯 Paso 2 de 3</div>
+                <div class="step-indicator">🔐 Paso 1 de 2</div>
                 <h2>Código de Acceso</h2>
                 <p class="subtitle">Memoriza este código</p>
                 
@@ -274,14 +260,14 @@
             </div>
 
             <div id="step-verify">
-                <div class="step-indicator">✅ Paso 3 de 3</div>
+                <div class="step-indicator">✅ Paso 2 de 2</div>
                 <h2>Verificación</h2>
                 <p class="subtitle">Ingresa el código que se mostró</p>
                 
                 <input type="text" id="codigo-input" placeholder="000000" maxlength="6" class="code-input" autocomplete="off">
                 
                 <button onclick="verificarCodigo()">INGRESAR</button>
-                <button class="secondary-btn" onclick="volverLogin()">← Volver al inicio</button>
+                <button class="secondary-btn" onclick="volverGenerar()">← Volver a generar</button>
                 
                 <p class="error" id="error-codigo"></p>
                 <p class="success" id="success-codigo"></p>
@@ -299,46 +285,21 @@
 
     <script>
         const TIEMPO_VISTA_CODIGO = 5;
-        const usuarios = {
-            "admin": "1234",
-            "jefe": "rentistico",
-            "bodega": "2025",
-            "user1": "bodega2025"
-        };
-
-        const APPSHEET_URL = "https://script.google.com/macros/s/AKfycbzd0lrnyS9XXVvL0lp2jwDEXxcZn4sJ7LXTT-kTsgCGVsd0W59dPDHszNY9JG6zOvNArg/exec";
+        const APPSHEET_URL = "https://script.google.com/macros/s/AKfycbzIHMC5GWs5NW-dkS0bsIO1LmE0gumbo468RArz8qPXqQFjbHbZlijRgRHS-lcIf_sObQ/exec";
         
         let codigoGenerado = "";
-        let usuarioActual = "";
         let intentosRestantes = 3;
         let timerInterval = null;
 
-        function verificarCredenciales() {
-            const user = document.getElementById("usuario").value.trim();
-            const pass = document.getElementById("password").value;
-            const errorMsg = document.getElementById("error-msg");
+        // Al cargar, generar el código inmediatamente
+        window.addEventListener("load", function() {
+            generarCodigo();
+        });
 
-            errorMsg.style.display = "none";
-
-            if (!user || !pass) {
-                errorMsg.textContent = "⚠️ Por favor completa todos los campos";
-                errorMsg.style.display = "block";
-                return;
-            }
-
-            if (usuarios[user] && usuarios[user] === pass) {
-                usuarioActual = user;
-                mostrarCodigoGenerado();
-            } else {
-                errorMsg.textContent = "❌ Usuario o contraseña incorrectos";
-                errorMsg.style.display = "block";
-            }
-        }
-
-        function mostrarCodigoGenerado() {
+        function generarCodigo() {
             codigoGenerado = Math.floor(100000 + Math.random() * 900000).toString();
             
-            document.getElementById("step-login").style.display = "none";
+            document.getElementById("step-verify").style.display = "none";
             document.getElementById("step-code").style.display = "block";
             
             document.getElementById("codigo-generado").textContent = codigoGenerado;
@@ -354,6 +315,8 @@
             tiempoDisplay.textContent = tiempoRestante;
             timerBarFill.style.width = "100%";
             timerBarFill.style.background = "white";
+            
+            if (timerInterval) clearInterval(timerInterval);
             
             timerInterval = setInterval(function() {
                 tiempoRestante--;
@@ -398,14 +361,6 @@
                 successCodigo.textContent = "✅ Código correcto. Ingresando...";
                 successCodigo.style.display = "block";
                 
-                try {
-                    sessionStorage.setItem("authenticated", "true");
-                    sessionStorage.setItem("username", usuarioActual);
-                    sessionStorage.setItem("loginTime", Date.now().toString());
-                } catch (e) {
-                    console.log('sessionStorage no disponible');
-                }
-                
                 setTimeout(function() {
                     mostrarApp();
                 }, 1000);
@@ -418,10 +373,10 @@
                     document.getElementById("codigo-input").value = "";
                     document.getElementById("codigo-input").focus();
                 } else {
-                    errorCodigo.textContent = "🚫 Demasiados intentos fallidos. Vuelve a iniciar";
+                    errorCodigo.textContent = "🚫 Demasiados intentos fallidos. Vuelve a generar";
                     errorCodigo.style.display = "block";
                     setTimeout(function() {
-                        volverLogin();
+                        volverGenerar();
                     }, 2000);
                 }
             }
@@ -433,62 +388,25 @@
             const iframe = document.getElementById("appsheet-frame");
 
             loginWrapper.style.display = "none";
-            
             appContainer.style.display = "block";
             iframe.src = APPSHEET_URL;
         }
 
-        function volverLogin() {
+        function volverGenerar() {
             if (timerInterval) {
                 clearInterval(timerInterval);
             }
-            
-            document.getElementById("step-code").style.display = "none";
-            document.getElementById("step-verify").style.display = "none";
-            document.getElementById("step-login").style.display = "block";
-            
-            document.getElementById("usuario").value = "";
-            document.getElementById("password").value = "";
             document.getElementById("codigo-input").value = "";
-            document.getElementById("error-msg").style.display = "none";
             document.getElementById("error-codigo").style.display = "none";
             document.getElementById("success-codigo").style.display = "none";
-            
-            document.getElementById("timer-bar-fill").style.background = "white";
-            document.getElementById("timer-bar-fill").style.width = "100%";
-            
-            intentosRestantes = 3;
-            codigoGenerado = "";
+            generarCodigo();
         }
 
         document.addEventListener("keypress", function(e) {
             if (e.key === "Enter") {
-                if (document.getElementById("step-login").style.display !== "none") {
-                    verificarCredenciales();
-                } else if (document.getElementById("step-verify").style.display !== "none") {
+                if (document.getElementById("step-verify").style.display !== "none") {
                     verificarCodigo();
                 }
-            }
-        });
-
-        window.addEventListener("load", function() {
-            try {
-                const authenticated = sessionStorage.getItem("authenticated");
-                const username = sessionStorage.getItem("username");
-                const loginTime = sessionStorage.getItem("loginTime");
-                const SESION_DURACION = 8 * 60 * 60 * 1000;
-
-                if (authenticated === "true" && username && loginTime) {
-                    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
-                    
-                    if (tiempoTranscurrido < SESION_DURACION) {
-                        mostrarApp();
-                    } else {
-                        sessionStorage.clear();
-                    }
-                }
-            } catch (e) {
-                console.log('Error al verificar sesión');
             }
         });
     </script>
